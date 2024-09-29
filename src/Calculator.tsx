@@ -1,8 +1,8 @@
 import { useEffect, useReducer, useState } from 'react';
 import { Box, Button, Grid, Typography } from '@mui/material';
 
-// TODO: バックスペース機能の実装
 // TODO2: 小数点を考慮した計算の実装
+// TODO3: 四則演算の演算順序を考慮してなかったwww
 
 const Calculator = () => {
   interface DisplayDataType {
@@ -247,6 +247,17 @@ const Calculator = () => {
         console.log('newDisplayData:', newDisplayData);
         return newDisplayData;
 
+      case '⇚':
+        // 一文字消す
+        if (newDisplayData.text !== '') {
+          newDisplayData = {
+            text: newDisplayData.text.slice(0, -1),
+            operation: '',
+          };
+          console.log('Erase a last character.');
+        }
+        return newDisplayData;
+
       case 'CE':
         // 全消し
         newDisplayData = {
@@ -319,7 +330,11 @@ const Calculator = () => {
           </Button>
         </Grid>
         <Grid item xs={3}>
-          <Button variant="contained" fullWidth>
+          <Button variant="contained" fullWidth
+            onClick={() => {
+              dispatch('⇚');
+            }}
+          >
             ⇚
           </Button>
         </Grid>
