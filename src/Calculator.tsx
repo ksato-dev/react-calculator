@@ -9,13 +9,11 @@ const Calculator = () => {
   interface DisplayDataType {
     text: string;
     operation: string;
-    priority: number; // 数値高いほど優先順位高い
     done?: true; // 計算が終わってる時（つまり＝が押された時 true になる）
   }
 
   const initDisplayData: DisplayDataType = {
     text: '',
-    priority: 0,
     operation: '',
   };
   const initDisplayDataList: DisplayDataType[] = [];
@@ -54,6 +52,7 @@ const Calculator = () => {
   // こういうクソコードを書くと少し変更を加えた際にバグが生じるのでテストコードを書くべき。
   // 引数と状態変数がごっちゃになっていそうな気もする。
   // Helper functions to check if a token is a number or operator
+  // 計算順序考慮するの大変だったため、ChatGPT を利用 ---
   const isOperator = (token: string): boolean => {
     return ['＋', '－', '×', '÷'].includes(token);
   };
@@ -67,6 +66,7 @@ const Calculator = () => {
     const outputQueue: string[] = [];
     const operatorStack: string[] = [];
 
+    // このインデックスシグネチャの使い方参考になる。
     const precedence: { [key: string]: number } = {
       '＋': 1,
       '－': 1,
@@ -165,9 +165,8 @@ const Calculator = () => {
     // Update displayDataListState to show the result
     setDisplayDataListState([
       {
-        text: String(result),
+        text: result !== undefined ? String(result) : "",
         operation: '',
-        priority: 0,
         done: true,
       },
     ]);
@@ -176,10 +175,10 @@ const Calculator = () => {
     newDisplayData = {
       text: '',
       operation: '',
-      priority: 0,
       done: true,
     };
   };
+  // --- 計算順序考慮するの大変だったため、ChatGPT を利用
 
   // const calcResult = (
   //   currDisplayData: DisplayDataType,
@@ -320,7 +319,6 @@ const Calculator = () => {
 
         newDisplayData = {
           text: newDisplayData.text + token,
-          priority: newDisplayData.priority,
           operation: '',
         };
         console.log('Add:', newDisplayData);
@@ -333,12 +331,9 @@ const Calculator = () => {
         // messy code
         // 最後に入力されたデータ
         if (newDisplayData.text !== '') {
-          let currPriority = newDisplayData.priority;
-          if (token === '×' || token === '÷') currPriority = 10;
 
           newDisplayData = {
             text: newDisplayData.text,
-            priority: currPriority,
             operation: token,
           };
           setDisplayDataListState([...displayDataListState, newDisplayData]);
@@ -346,7 +341,6 @@ const Calculator = () => {
           // set したら空にする。
           newDisplayData = {
             text: '',
-            priority: 0,
             operation: '',
           };
           console.log('Add:', token);
@@ -359,14 +353,11 @@ const Calculator = () => {
               displayDataListState[displayDataListState.length - 1];
           }
           if (lastHistoryDisplayData !== undefined) {
-            let currPriority = lastHistoryDisplayData.priority;
-            if (token === '×' || token === '÷') currPriority = 10;
 
             // 最後に入力されたデータ
             // 演算子を消したものを作る。
             const updatedOperationData: DisplayDataType = {
               text: lastHistoryDisplayData.text,
-              priority: currPriority,
               operation: token,
             };
 
@@ -381,7 +372,6 @@ const Calculator = () => {
             newDisplayData = {
               text: '',
               operation: '',
-              priority: 0,
             };
             console.log('Update:', token);
             console.log('displayDataListState:', displayDataListState);
@@ -391,19 +381,18 @@ const Calculator = () => {
         return newDisplayData;
 
       case '=':
-        console.log(
-          'displayDataListState:',
-          displayDataListState,
-          ', newDisplayData:',
-          newDisplayData
-        );
+        // console.log(
+        //   'displayDataListState:',
+        //   displayDataListState,
+        //   ', newDisplayData:',
+        //   newDisplayData
+        // );
         calcResult(currDisplayData, newDisplayData, token);
 
         // 今の入力表示を消したいので、text を空にする。
         newDisplayData = {
           text: '',
-          operation: token,
-          priority: 0,
+          operation: '',
           done: true,
         };
         console.log('newDisplayData:', newDisplayData);
@@ -415,7 +404,6 @@ const Calculator = () => {
           newDisplayData = {
             text: newDisplayData.text.slice(0, -1),
             operation: '',
-            priority: newDisplayData.priority,
           };
           console.log('Erase a last character.');
         }
@@ -426,7 +414,6 @@ const Calculator = () => {
         newDisplayData = {
           text: '',
           operation: '',
-          priority: 0,
         };
         setDisplayDataListState([]);
         console.log('All Clear');
@@ -435,7 +422,6 @@ const Calculator = () => {
         newDisplayData = {
           text: '',
           operation: '',
-          priority: 0,
         };
         console.log('Clear');
         return newDisplayData;
