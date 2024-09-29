@@ -23,9 +23,11 @@ const Calculator = () => {
     }, ''); // 初期値は空の文字列
   };
 
+  // 過去の入力内容を表示するための useEffect
+  // displayDataListState (今までの入力内容) が更新されたタイミング呼び出し。 
   useEffect(() => {
     setHistoryState(getHistory());
-    console.log("set history.")
+    console.log('set history.');
   }, [displayDataListState]);
 
   // 二個の値を受け取って演算子に応じた計算を行う。
@@ -180,9 +182,6 @@ const Calculator = () => {
       case '×':
       case '÷':
         // messy code
-        // if (newDisplayData.text === '' && newDisplayData.operation === '') {
-        //   return newDisplayData;
-        // }
         // 最後に入力されたデータ
         if (newDisplayData.text !== '') {
           newDisplayData = {
@@ -213,6 +212,8 @@ const Calculator = () => {
               operation: action,
             };
 
+            // 下記で渡すと参照渡しをしてしまう。直接状態を書き換えようとすることはできない。
+            // let newDisplayDataList = displayDataListState; 
             let newDisplayDataList = [...displayDataListState];
             newDisplayDataList[newDisplayDataList.length - 1] =
               updatedOperationData;
@@ -230,7 +231,12 @@ const Calculator = () => {
         return newDisplayData;
 
       case '=':
-        console.log('displayDataListState:', displayDataListState, ", newDisplayData:", newDisplayData);
+        console.log(
+          'displayDataListState:',
+          displayDataListState,
+          ', newDisplayData:',
+          newDisplayData
+        );
         calcResult(currDisplayData, newDisplayData, action);
 
         newDisplayData = {
